@@ -4,7 +4,7 @@ import "hardhat/console.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { LibDiamond } from "../libraries/LibDiamond.sol";
 import { IERC173 } from "../interfaces/IERC173.sol";
-import { AppStorage, WState, PState, State } from "../libraries/AppStorage.sol";
+import "../libraries/AppStorage.sol";
 
 
  contract CloudSLA {
