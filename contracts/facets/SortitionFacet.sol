@@ -12,6 +12,10 @@ contract SortitionFacet {
 
     event WitnessSelected(address indexed _who, uint _index, address _forWhom);
 
+    function returnTime() external view
+    {
+       console.log('ReportTimeWin is: ', s.ReportTimeWin); 
+    }
 
     /**
      * Contract Interface::
@@ -24,8 +28,8 @@ contract SortitionFacet {
         returns
         (bool success)
     {
-        require(msg.sender == s.Provider);
-        require(s.SLAContractPool[slaContractAddr].valid);
+        require(msg.sender == s.Provider , "msg.sender is not Provider");
+        require(s.SLAContractPool[slaContractAddr].valid , "sla contract is not valid");
         console.log('msg.sender is:', msg.sender);
         console.log('s.Provider is:', s.Provider);
         ////record current block number

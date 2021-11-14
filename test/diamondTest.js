@@ -121,9 +121,10 @@ describe('DiamondTest', async function () {
     await witnessPoolFacet.connect(wit5).register();
     await witnessPoolFacet.connect(wit6).register();
 
-    await slaInitializing.connect(provider).returnTime();
+    // await slaInitializing.connect(provider).setTime();
+    // await slaInitializing.connect(provider).returnTime();
 
-    await witnessPoolFacet.connect(provider).returnValue();
+    // await witnessPoolFacet.connect(provider).returnValue();
 
   //   //run cloudSLA***********************************************
     const CloudSLA = await ethers.getContractFactory('CloudSLA');
@@ -178,6 +179,10 @@ describe('DiamondTest', async function () {
     // selectors = getSelectors(initializing);
     // result = await diamondLoupeFacet.facetFunctionSelectors(addresses[6]);
     // assert.sameMembers(result, selectors);
+
+    // await cloudSLA.connect(provider).generateSLA(customer.address);
+    await sortitionFacet.connect(provider).returnTime();
+
 
     // //*   Request for sortition************************************ */
 

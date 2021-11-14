@@ -18,19 +18,18 @@ import "../libraries/AppStorage.sol";
     event SLAContractGen(address indexed _who, uint _time, address _contractAddr);
 
  
-    constructor (address _customer)
-        public
+    constructor (address _customer) 
     {
         require(!s.providerPool[msg.sender].registered);
-        console.log('before  s.ReportTimeWin is: ',  s.ReportTimeWin);
         s.Provider = msg.sender;
-        console.log('s.Provider is:', s.Provider);
-        s.Customer = _customer;
+        s.Customer =  _customer;
         s.SLAContractPool[address(this)].valid = true;
+        
         emit SLAContractGen(msg.sender, block.timestamp, address(this));
         console.log('constructor is deployed address is:', address(this));
     }
 
+    
     
 
     //// this is for Cloud provider to set up this SLA and wait for Customer to accept
