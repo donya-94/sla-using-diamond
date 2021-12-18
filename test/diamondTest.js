@@ -19,6 +19,7 @@ const { assert } = require('chai')
 
 describe('DiamondTest', async function () {
   let diamondAddress
+  let diamondInit
   let deployDiamondVar
   let diamondCutFacet
   let diamondLoupeFacet
@@ -35,6 +36,7 @@ describe('DiamondTest', async function () {
   before(async function () {
     deployDiamondVar = await deployDiamond()
     diamondAddress = deployDiamondVar.diamond
+    diamondInit = deployDiamondVar.diamondInit
     console.log('DiamondAddress is: ', diamondAddress)
     diamondCutFacet = await ethers.getContractAt('DiamondCutFacet', diamondAddress)
     diamondLoupeFacet = await ethers.getContractAt('DiamondLoupeFacet', diamondAddress)
@@ -42,14 +44,15 @@ describe('DiamondTest', async function () {
     witnessPoolFacet = await ethers.getContractAt('WitnessPoolFacet', diamondAddress)
     sortitionFacet = await ethers.getContractAt('SortitionFacet', diamondAddress)
     slaInitializing = await ethers.getContractAt('SLAInitializing', diamondAddress)
+    // diamondInit = deployDiamondVar.diamondInit
   })
 
   it('print DiamondInit and functionCall', async()=>{
 
-    console.log('DiamondInit deployed:', deployDiamondVar.diamondInit)
+    // console.log('DiamondInit deployed:', diamondInit)
 
     
-    console.log('DiamondInit deployed:', deployDiamondVar.functionCall)
+    // console.log('DiamondInit deployed:', deployDiamondVar.functionCall)
   })
 
   it('should have six facets -- call to facetAddresses function', async () => {
@@ -108,8 +111,9 @@ describe('DiamondTest', async function () {
     console.log('I am in witness scope' );
 
     
-    const [owner, provider, customer, wit1, wit2, wit3, wit4, wit5, wit6] = await ethers.getSigners();
-    console.log(provider.address);
+    const [owner, nothing, customer, wit1, wit2, wit3, wit4, wit5, wit6, provider] = await ethers.getSigners();
+    console.log('Provider address is: ',provider.address);
+    console.log('Owner address is: ',owner.address);
 
     await witnessPoolFacet.connect(provider).registerProvider();
     console.log( await web3.eth.getBalance(provider.address));
@@ -128,7 +132,9 @@ describe('DiamondTest', async function () {
 
   //   //run cloudSLA***********************************************
     const CloudSLA = await ethers.getContractFactory('CloudSLA');
-    const cloudSLA = await CloudSLA.connect(provider).deploy(customer.address);
+    const cloudSLA = await CloudSLA.connect(provider).deploy();
+    // console.log("provider +++++++++++++++++++++++++++",cloudSLA);
+
     await cloudSLA.deployed();
 
     
@@ -138,9 +144,9 @@ describe('DiamondTest', async function () {
     // const slaInitializing = await SLAInitializing.connect(provider).deploy();
     // await slaInitializing.deployed();
 
-    const DiamondInit = await ethers.getContractFactory('DiamondInit')
-    const diamondInit = await DiamondInit.deploy()
-    await diamondInit.deployed()
+    // const DiamondInit = await ethers.getContractFactory('DiamondInit')
+    // const diamondInit = await DiamondInit.deploy()
+    // await diamondInit.deployed()
 
     let selectors = getSelectors(diamondCutFacet);
 
@@ -157,11 +163,18 @@ describe('DiamondTest', async function () {
 
         // console.log('Diamond Cut:', cut)
 
+    const diamondCut = await ethers.getContractAt('IDiamondCut', diamondAddress)
     // call to init function
-    // let functionCall = diamondInit.interface.encodeFunctionData('init');
-    await diamondCutFacet.diamondCut(cut , deployDiamondVar.diamondInit, deployDiamondVar.functionCall);
+    console.log('before functionCall');
+    // console.log('interface_+_+_+_+_+_+_+_+_+_+_+_+_+_', diamondInit.connect(provider).interface.encodeFunctionData('init1',[customer.address, cloudSLA.address]) );
+    const functionCall = diamondInit.interface.encodeFunctionData('init1',[provider.address,customer.address, cloudSLA.address]);
+    
+    // const newFunctionCall = functionCall.slice(0,10);
+    console.log('functionCall in test.js is:' , functionCall);
+    await diamondCut.diamondCut(cut , diamondInit.address, functionCall);
+    console.log('after await functionCall');
 
-    sla = await ethers.getContractAt('CloudSLA', diamondAddress);
+    // sla = await ethers.getContractAt('CloudSLA', diamondAddress);
 
     // initializing = await ethers.getContractAt('SLAInitializing', diamondAddress);
  
@@ -171,17 +184,17 @@ describe('DiamondTest', async function () {
     // addresses.push(a[6]);
     
     /* The 3 commands below are for checking same function selector of facet ***** */
-    selectors = getSelectors(sla);
-    result = await diamondLoupeFacet.facetFunctionSelectors(addresses[6]);
-    assert.sameMembers(result, selectors);
+    // selectors = getSelectors(sla);
+    // result = await diamondLoupeFacet.facetFunctionSelectors(addresses[6]);
+    // assert.sameMembers(result, selectors);
     
     // /* The 3 commands below are for checking same function selector of facet ***** */
     // selectors = getSelectors(initializing);
     // result = await diamondLoupeFacet.facetFunctionSelectors(addresses[6]);
     // assert.sameMembers(result, selectors);
 
-    // await cloudSLA.connect(provider).generateSLA(customer.address);
-    await sortitionFacet.connect(provider).returnTime();
+    // await cloudSLA.connect(provider).genSLA(customer.address);
+    // await sortitionFacet.connect(provider).returnTime();
 
 
     // //*   Request for sortition************************************ */

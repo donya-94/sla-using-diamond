@@ -5,6 +5,9 @@ pragma solidity ^0.8.0;
 * Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)
 * EIP-2535 Diamonds: https://eips.ethereum.org/EIPS/eip-2535
 /******************************************************************************/
+
+import "hardhat/console.sol";
+
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 
 library LibDiamond {
@@ -131,6 +134,9 @@ library LibDiamond {
     }
 
     function initializeDiamondCut(address _init, bytes memory _calldata) internal {
+
+        console.log('init in diamondLib is:' , _init);
+        
         if (_init == address(0)) {
             require(_calldata.length == 0, "LibDiamondCut: _init is address(0) but_calldata is not empty");
         } else {

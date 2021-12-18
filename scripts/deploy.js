@@ -4,7 +4,7 @@
 const { getSelectors, FacetCutAction } = require('./libraries/diamond.js')
 
   var diamondInit;
-  var functionCall;
+  // var functionCall;
   var diamond;
 
 async function deployDiamond () {
@@ -62,7 +62,9 @@ async function deployDiamond () {
   let tx
   let receipt
   // call to init function
-  functionCall = diamondInit.interface.encodeFunctionData('init')
+  
+  const functionCall = diamondInit.interface.encodeFunctionData('init')
+  console.log('functionCall in deploy.js is:' ,functionCall)
   tx = await diamondCut.diamondCut(cut, diamondInit.address, functionCall)
   console.log('Diamond cut tx: ', tx.hash)
   receipt = await tx.wait()
@@ -73,8 +75,7 @@ async function deployDiamond () {
   // return diamond.address
   return {
 
-    diamondInit: diamondInit.address,
-    functionCall: functionCall,
+    diamondInit: diamondInit,
     diamond: diamond.address
   };
 }

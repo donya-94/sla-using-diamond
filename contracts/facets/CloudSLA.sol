@@ -15,19 +15,23 @@ import "../libraries/AppStorage.sol";
     event SLAStateModified(address indexed _who, uint _time, State _newstate);
     
     ////record the provider _who generates a SLA contract of address _contractAddr at time _time
-    event SLAContractGen(address indexed _who, uint _time, address _contractAddr);
+    // event SLAContractGen(address indexed _who, uint _time, address _contractAddr);
 
  
-    constructor (address _customer) 
-    {
-        require(!s.providerPool[msg.sender].registered);
-        s.Provider = msg.sender;
-        s.Customer =  _customer;
-        s.SLAContractPool[address(this)].valid = true;
+    // constructor () 
+    // {
+    //     emit SLAContractGen(msg.sender, block.timestamp, address(this));
+    // }
+
+    // function genSLA (address _customer) external {
+    //     require(!s.providerPool[msg.sender].registered);
+    //     s.Provider = msg.sender;
+    //     s.Customer =  _customer;
+    //     s.SLAContractPool[address(this)].valid = true;
         
-        emit SLAContractGen(msg.sender, block.timestamp, address(this));
-        console.log('constructor is deployed address is:', address(this));
-    }
+    //     emit SLAContractGen(msg.sender, block.timestamp, address(this));
+    //     console.log('constructor is deployed address is:', address(this));
+    // }
 
     
     
