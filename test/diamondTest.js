@@ -167,14 +167,14 @@ describe('DiamondTest', async function () {
     // call to init function
     console.log('before functionCall');
     // console.log('interface_+_+_+_+_+_+_+_+_+_+_+_+_+_', diamondInit.connect(provider).interface.encodeFunctionData('init1',[customer.address, cloudSLA.address]) );
-    const functionCall = diamondInit.interface.encodeFunctionData('init1',[provider.address,customer.address, cloudSLA.address]);
+    const functionCall = diamondInit.interface.encodeFunctionData('init1',[provider.address, customer.address, cloudSLA.address]);
     
     // const newFunctionCall = functionCall.slice(0,10);
     console.log('functionCall in test.js is:' , functionCall);
     await diamondCut.diamondCut(cut , diamondInit.address, functionCall);
     console.log('after await functionCall');
 
-    // sla = await ethers.getContractAt('CloudSLA', diamondAddress);
+    sla = await ethers.getContractAt('CloudSLA', diamondAddress);
 
     // initializing = await ethers.getContractAt('SLAInitializing', diamondAddress);
  
@@ -193,13 +193,14 @@ describe('DiamondTest', async function () {
     // result = await diamondLoupeFacet.facetFunctionSelectors(addresses[6]);
     // assert.sameMembers(result, selectors);
 
-    // await cloudSLA.connect(provider).genSLA(customer.address);
-    // await sortitionFacet.connect(provider).returnTime();
 
 
     // //*   Request for sortition************************************ */
 
-    await sortitionFacet.connect(provider).request(cloudSLA.address);
+    await sla.connect(provider).request();
+    // console.log("cloudSLA is: ", cloudSLA.address);
+    await sla.connect(provider).sortition(3);
+    console.log("after sortition");
 
     // await initializing.connect(provider).setBlkNeeded(2);
 

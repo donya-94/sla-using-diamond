@@ -32,7 +32,7 @@ contract Diamond {
 
         s.Provider = msg.sender;
         s.Customer = msg.sender;
-        // s.SLAContractPool[address(this)].valid = true;
+        s.SLAContractPool[address(this)].valid = true; //this is for initializing not using
         s.confirmedViolationNumber = 0;// this is for number of confirmed violation
         s.cloudServiceDetail = "";
     

@@ -11,8 +11,13 @@ import "../libraries/AppStorage.sol";
      
     AppStorage internal s;
 
+    
+    ////this is to log event that _witness report a violation at time stamp _time for a SLA monitoring round of _roundID
+    event SLAViolationRep(address indexed _witness, uint _time, uint _roundID);    
      ////this is to log event that _who modified the SLA state to _newstate at time stamp _time
     event SLAStateModified(address indexed _who, uint _time, State _newstate);
+
+    event WitnessSelected(address indexed _who, uint _index, address _forWhom);
     
     ////record the provider _who generates a SLA contract of address _contractAddr at time _time
     // event SLAContractGen(address indexed _who, uint _time, address _contractAddr);
@@ -33,7 +38,89 @@ import "../libraries/AppStorage.sol";
     //     console.log('constructor is deployed address is:', address(this));
     // }
 
-    
+    function request()
+        public 
+        returns
+        (bool success)
+    {
+        console.log('s.Provider is:', s.Provider);
+        require(msg.sender == s.Provider , "msg.sender is not Provider");
+        require(s.SLAContractPool[address(this)].valid , "sla contract is not valid");
+        console.log('msg.sender is:', msg.sender);
+        
+        ////record current block number
+        s.SLAContractPool[address(this)].curBlockNum = block.number;
+        s.SLAContractPool[address(this)].blkNeed = s.BlkNeeded;
+        return true;
+    }
+
+
+    // function sortitionFromWP(uint _N)
+    //     public
+    //     returns
+    //     (bool success)
+    // {
+        
+        
+    //     require(sortition(_N));
+    //     return true;
+    // }
+
+    /**
+     * Contract Interface::
+     * Request for a sortition of _N witnesses. The _provider and _customer must not be selected.
+     * */
+
+     // باید این تابع از طرف sla فرستاده بشه 
+    function sortition(uint _N)
+        public
+        returns
+        (bool success)
+    {
+        require(s.Provider == msg.sender);
+        (s.WitnessNumber > s.witnessCommittee.length);
+        
+        require(s.WitnessNumber - s.witnessCommittee.length >= _N);
+        
+        require(s.Customer != address(0x0));
+        require(s.SLAContractPool[address(this)].valid, "sortition: sla contract is not valid");
+        ////make sure the request is invoked before this interface
+        require(s.SLAContractPool[address(this)].curBlockNum != 0);
+        //// there should be more than 10 times of _N online witnesses
+        require(s.onlineCounter >= _N+2 , "online counter error");   ///this is debug mode
+        //require(onlineCounter > 10*_N);
+        
+        ////currently, the hash value can only be accessed within 255 depth. In this case, invoke 'request' again
+        require( block.number < s.SLAContractPool[address(this)].curBlockNum + 255);
+        //// there should be more than extra 2*blkNeed blocks generated  
+        // require( block.number > SLAContractPool[msg.sender].curBlockNum + 2*SLAContractPool[msg.sender].blkNeed , "> error");
+        uint seed = 0;
+        for(uint bi = 0 ; bi<s.SLAContractPool[address(this)].blkNeed ; bi++)
+            seed += (uint)(blockhash(s.SLAContractPool[address(this)].curBlockNum + bi + 1 ));
+        
+        uint wcounter = 0;
+        while(wcounter < _N){
+            address sAddr = s.witnessAddrs[seed % s.witnessAddrs.length];
+            
+            if(s.witnessPool[sAddr].state == WState.Online && s.witnessPool[sAddr].reputation > 0
+               && sAddr != msg.sender && sAddr != s.Customer)
+            {
+                s.witnessPool[sAddr].state = WState.Candidate;
+                s.witnessPool[sAddr].confirmDeadline = block.timestamp + 5 minutes;   /// 5 minutes for confirmation
+                s.witnessPool[sAddr].SLAContract = address(this);
+                emit WitnessSelected(sAddr, s.witnessPool[sAddr].index, address(this));
+                s.onlineCounter--;
+                wcounter++;
+                console.log("selectesd witness is:",sAddr);
+            }
+            
+            seed = (uint)(keccak256(abi.encodePacked(seed)));
+        }
+        
+        ///make this interface cannot be invoked twice without 'request'
+        s.SLAContractPool[address(this)].curBlockNum = 0;
+        return true;
+    }
     
 
     //// this is for Cloud provider to set up this SLA and wait for Customer to accept
@@ -111,107 +198,113 @@ import "../libraries/AppStorage.sol";
      * Contract Interface::
      * Candidate witness calls the SLA contract and confirm the sortition. 
      * */
-    // function confirm()
-    //     public
-    //     checkWitness(msg.sender)
-    //     checkSLAContract(address(this))
-    //     returns 
-    //     (bool)
-    // {
-    //     require(s.witnessPool[msg.sender].registered);
-    //     require(s.SLAContractPool[address(this)].valid);
+    function confirm()
+        public
+        returns 
+        (bool)
+    {
+        require(s.witnessPool[msg.sender].registered);
+        require(s.SLAContractPool[address(this)].valid);
 
-    //     ////have not registered in the witness committee
-    //     require(!s.witnesses[msg.sender].selected);
+        ////have not registered in the witness committee
+        require(!s.witnesses[msg.sender].selected);
         
-    //     ////The candidate witness can neither be the provider nor the customer
-    //     require(msg.sender != s.Provider);
-    //     require(msg.sender != s.Customer);
+        ////The candidate witness can neither be the provider nor the customer
+        require(msg.sender != s.Provider);
+        require(msg.sender != s.Customer);
 
-    //     ////have not reached the confirmation deadline
-    //     require( block.timestamp < s.witnessPool[msg.sender].confirmDeadline );
+        ////have not reached the confirmation deadline
+        require( block.timestamp < s.witnessPool[msg.sender].confirmDeadline );
         
-    //     ////only able to confirm in candidate state
-    //     require(s.witnessPool[msg.sender].state == WState.Candidate);
+        ////only able to confirm in candidate state
+        require(s.witnessPool[msg.sender].state == WState.Candidate);
         
-    //     ////only the SLA contract can select it.
-    //     require(s.witnessPool[msg.sender].SLAContract == address(this));
+        ////only the SLA contract can select it.
+        require(s.witnessPool[msg.sender].SLAContract == address(this));
         
-    //     s.witnessPool[msg.sender].state = WState.Busy;
+        s.witnessPool[msg.sender].state = WState.Busy;
 
-    //     s.witnessCommittee.push(msg.sender);
-    //     s.witnesses[msg.sender].selected = true;
+        s.witnessCommittee.push(msg.sender);
+        s.witnesses[msg.sender].selected = true;
         
-    //     return true;
-    // }
+        return true;
+    }
 
 
-    // function reportViolation()
-    //     public
-    //     payable
-    //     checkTimeIn(s.ServiceEnd)
-    //     checkWitnessSelected() 
-    //     checkMoney(s.VoteFee)
-    // {
-    //     uint equalOp = 0;   /////nonsense operation to make every one using the same gas 
+    function reportViolation()
+        public
+        payable
+    {
+         require(block.timestamp < s.ServiceEnd);
+         require(s.witnesses[msg.sender].selected);
+         require((uint)(msg.value) >= s.VoteFee);
+
+        uint equalOp = 0;   /////nonsense operation to make every one using the same gas 
         
-    //     if(s.ReportTimeBegin == 0)
-    //         s.ReportTimeBegin = block.timestamp;
-    //     else
-    //         equalOp = block.timestamp; 
+        if(s.ReportTimeBegin == 0)
+            s.ReportTimeBegin = block.timestamp;
+        else
+            equalOp = block.timestamp; 
             
-    //     ////only valid within the confirmation time window
-    //     require(block.timestamp < s.ReportTimeBegin + s.ReportTimeWin);
+        ////only valid within the confirmation time window
+        require(block.timestamp < s.ReportTimeBegin + s.ReportTimeWin);
         
-    //     require( s.SLAState == State.Violated || s.SLAState == State.Active );
+        require( s.SLAState == State.Violated || s.SLAState == State.Active );
         
-    //     /////one witness cannot vote twice 
-    //     require(!s.witnesses[msg.sender].violated);
+        /////one witness cannot vote twice 
+        require(!s.witnesses[msg.sender].violated);
         
-    //     s.witnesses[msg.sender].violated = true;
-    //     s.witnesses[msg.sender].balance += s.VoteFee;
-    //     s.witnesses[msg.sender].reported += 1;
+        s.witnesses[msg.sender].violated = true;
+        s.witnesses[msg.sender].balance += s.VoteFee;
+        s.witnesses[msg.sender].reported += 1;
         
-    //     s.ConfirmRepCount++;
+        s.ConfirmRepCount++;
         
-    //     ////the witness who reports in the last order pay more gas as penalty
-    //     if( s.ConfirmRepCount >= s.ConfirmNumRequired ){
-    //         s.SLAState = State.Violated;
-    //         emit SLAStateModified(msg.sender, block.timestamp, State.Violated);
-    //         s.confirmedViolationNumber++;
-    //     }
+        ////the witness who reports in the last order pay more gas as penalty
+        if( s.ConfirmRepCount >= s.ConfirmNumRequired ){
+            s.SLAState = State.Violated;
+            emit SLAStateModified(msg.sender, block.timestamp, State.Violated);
+            s.confirmedViolationNumber++;
+        }
         
-    //     emit SLAViolationRep(msg.sender, block.timestamp, s.ServiceEnd);
-    // }
+        emit SLAViolationRep(msg.sender, block.timestamp, s.ServiceEnd);
+    }
 
-    //  ///this only restart the SLA lifecycle, not including the selecting the witness committee. This is to continuously deliver the servce. 
-    // function restartSLA()
-    //     public
-    //     payable
-    //     checkState(State.Completed)
-    //     checkTimeOut(s.ServiceEnd)
-    //     checkProvider
-    //     checkAllBalance
-    //     checkMoney(s.PPrepayment)
-    // {
-    //     require(s.WitnessNumber == s.witnessCommittee.length);
+     ///this only restart the SLA lifecycle, not including the selecting the witness committee. This is to continuously deliver the servce. 
+    function restartSLA()
+        public
+        payable
+    {
+
+        require(s.SLAState == State.Completed);
+        require(block.timestamp > s.ServiceEnd);
+        require(msg.sender == s.Provider);
+        require((uint)(msg.value) >= s.PPrepayment);
         
-    //     /// reset all the related values
-    //     s.ConfirmRepCount = 0;
-    //     s.ReportTimeBegin = 0;
+    //// to ensure all the customers and witnesses has withdrawn money back
+        require(s.CustomerBalance == 0);
         
-    //     ///reset the witnesses' state only
-    //     for(uint i = 0 ; i < s.witnessCommittee.length ; i++){
-    //         if(s.witnesses[s.witnessCommittee[i]].violated == true)
-    //             s.witnesses[s.witnessCommittee[i]].violated = false;
-    //     }
+        for(uint i = 0 ; i < s.witnessCommittee.length ; i++)
+            require(s.witnesses[s.witnessCommittee[i]].balance == 0);// for and the upper requier are together
+
+        require(s.WitnessNumber == s.witnessCommittee.length);
+        
+        /// reset all the related values
+        s.ConfirmRepCount = 0;
+        s.ReportTimeBegin = 0;
+        
+        ///reset the witnesses' state only
+        for(uint i = 0 ; i < s.witnessCommittee.length ; i++){
+            if(s.witnesses[s.witnessCommittee[i]].violated == true)
+                s.witnesses[s.witnessCommittee[i]].violated = false;
+        }
         
         
-    //     s.ProviderBalance = msg.value;
-    //     s.SLAState = State.Init;
-    //     s.AcceptTimeEnd = block.timestamp + s.AcceptTimeWin;
-    //     emit SLAStateModified(msg.sender, block.timestamp, State.Init);
-    // }
+        s.ProviderBalance = msg.value;
+        s.SLAState = State.Init;
+        s.AcceptTimeEnd = block.timestamp + s.AcceptTimeWin;
+        emit SLAStateModified(msg.sender, block.timestamp, State.Init);
+    }
 
 
 
