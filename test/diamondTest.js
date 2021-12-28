@@ -110,8 +110,8 @@ describe('DiamondTest', async function () {
 
     console.log('I am in witness scope' );
 
-    
-    const [owner, nothing, customer, wit1, wit2, wit3, wit4, wit5, wit6, provider] = await ethers.getSigners();
+    let accounts = [];
+    accounts = [owner, nothing, customer, wit1, wit2, wit3, wit4, wit5, wit6, provider] = await ethers.getSigners();
     console.log('Provider address is: ',provider.address);
     console.log('Owner address is: ',owner.address);
 
@@ -199,8 +199,54 @@ describe('DiamondTest', async function () {
 
     await sla.connect(provider).request();
     // console.log("cloudSLA is: ", cloudSLA.address);
-    await sla.connect(provider).sortition(3);
-    console.log("after sortition");
+    
+    
+    let tx = await sla.connect(provider).sortition(3);
+    let receipt = await tx.wait();
+    const temp = receipt.events?.filter((x) => {return x.event == "WitnessSelected"});
+    // console.log("events are :", temp[1].args[0]);
+
+    switch (temp[0].args[0]) {
+      case wit1.address: await sla.connect(wit1).confirm(); break;
+      case wit2.address: await sla.connect(wit2).confirm(); break;
+      case wit3.address: await sla.connect(wit3).confirm(); break;
+      case wit4.address: await sla.connect(wit4).confirm(); break;
+      case wit5.address: await sla.connect(wit5).confirm(); break;
+      case wit6.address: await sla.connect(wit6).confirm(); break; 
+      default: break;
+    }
+
+    switch (temp[1].args[0]) {
+      case wit1.address: await sla.connect(wit1).confirm(); break;
+      case wit2.address: await sla.connect(wit2).confirm(); break;
+      case wit3.address: await sla.connect(wit3).confirm(); break;
+      case wit4.address: await sla.connect(wit4).confirm(); break;
+      case wit5.address: await sla.connect(wit5).confirm(); break;
+      case wit6.address: await sla.connect(wit6).confirm(); break; 
+      default: break;
+    }
+
+    switch (temp[2].args[0]) {
+      case wit1.address: await sla.connect(wit1).confirm(); break;
+      case wit2.address: await sla.connect(wit2).confirm(); break;
+      case wit3.address: await sla.connect(wit3).confirm(); break;
+      case wit4.address: await sla.connect(wit4).confirm(); break;
+      case wit5.address: await sla.connect(wit5).confirm(); break;
+      case wit6.address: await sla.connect(wit6).confirm(); break; 
+      default: break;
+    }
+
+
+    // let witnessArray  = [];
+    // console.log("witness in event is: ", temp.map( function(obj){
+    //   obj._who
+    // }));
+    // if (temp.filter(obj => {
+    //     return obj.who == wit1.address
+    //   }))
+    //   sla.connect(wit1).confirm();
+
+
 
     // await initializing.connect(provider).setBlkNeeded(2);
 

@@ -227,6 +227,8 @@ import "../libraries/AppStorage.sol";
         s.witnessCommittee.push(msg.sender);
         s.witnesses[msg.sender].selected = true;
         
+        console.log("witness confirmed: ", msg.sender);
+
         return true;
     }
 
