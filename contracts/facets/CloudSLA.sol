@@ -128,7 +128,7 @@ import "../libraries/AppStorage.sol";
         public 
         payable 
     {
-        require(s.SLAState == State.Fresh);
+        require(s.SLAState == State.Fresh,"problem is in slaState requier");
         require(msg.sender == s.Provider);
         require((uint)(msg.value) >= s.PPrepayment);
 
@@ -137,7 +137,9 @@ import "../libraries/AppStorage.sol";
         s.ProviderBalance += ((uint)(msg.value));
         s.SLAState = State.Init;
         s.AcceptTimeEnd = block.timestamp + s.AcceptTimeWin;
+        console.log("accept time end is: ", s.AcceptTimeEnd);
         emit SLAStateModified(msg.sender, block.timestamp, State.Init);
+        console.log("setUp SLA is done!");
     }
 
     function cancleSLA()
@@ -145,7 +147,7 @@ import "../libraries/AppStorage.sol";
     {
         require(s.SLAState == State.Init);
         require(msg.sender == s.Provider);
-        require(block.timestamp > s.AcceptTimeEnd);
+        require(block.timestamp < s.AcceptTimeEnd);
         if(s.ProviderBalance > 0){
             payable(msg.sender).transfer(s.ProviderBalance);
             s.ProviderBalance = 0;
@@ -162,7 +164,9 @@ import "../libraries/AppStorage.sol";
     {
         require(s.SLAState == State.Init);
         require(msg.sender == s.Customer);
-        require(block.timestamp > s.AcceptTimeEnd);
+        console.log("accept time end is: ", s.AcceptTimeEnd);
+        console.log("block.timestamp is: ", block.timestamp);
+        require(block.timestamp <= s.AcceptTimeEnd);
         require((uint)(msg.value) >= s.CPrepayment);
 
         uint _value;
@@ -188,6 +192,8 @@ import "../libraries/AppStorage.sol";
             payable(s.Provider).transfer(s.ServiceFee - s.CompensationFee);
             s.CustomerBalance -= (s.ServiceFee - s.CompensationFee);
         }
+
+        console.log("accept SLA is done!");
         
     }
 
@@ -270,6 +276,8 @@ import "../libraries/AppStorage.sol";
         }
         
         emit SLAViolationRep(msg.sender, block.timestamp, s.ServiceEnd);
+
+        console.log("violated");
     }
 
      ///this only restart the SLA lifecycle, not including the selecting the witness committee. This is to continuously deliver the servce. 

@@ -207,35 +207,44 @@ describe('DiamondTest', async function () {
     // console.log("events are :", temp[1].args[0]);
 
     switch (temp[0].args[0]) {
-      case wit1.address: await sla.connect(wit1).confirm(); break;
-      case wit2.address: await sla.connect(wit2).confirm(); break;
-      case wit3.address: await sla.connect(wit3).confirm(); break;
-      case wit4.address: await sla.connect(wit4).confirm(); break;
-      case wit5.address: await sla.connect(wit5).confirm(); break;
-      case wit6.address: await sla.connect(wit6).confirm(); break; 
+      case wit1.address: await sla.connect(wit1).confirm(); console.log("wit1 is selected"); break;
+      case wit2.address: await sla.connect(wit2).confirm(); console.log("wit2 is selected"); break;
+      case wit3.address: await sla.connect(wit3).confirm(); console.log("wit3 is selected"); break;
+      case wit4.address: await sla.connect(wit4).confirm(); console.log("wit4 is selected"); break;
+      case wit5.address: await sla.connect(wit5).confirm(); console.log("wit5 is selected"); break;
+      case wit6.address: await sla.connect(wit6).confirm(); console.log("wit6 is selected"); break; 
       default: break;
     }
 
     switch (temp[1].args[0]) {
-      case wit1.address: await sla.connect(wit1).confirm(); break;
-      case wit2.address: await sla.connect(wit2).confirm(); break;
-      case wit3.address: await sla.connect(wit3).confirm(); break;
-      case wit4.address: await sla.connect(wit4).confirm(); break;
-      case wit5.address: await sla.connect(wit5).confirm(); break;
-      case wit6.address: await sla.connect(wit6).confirm(); break; 
+      case wit1.address: await sla.connect(wit1).confirm(); console.log("wit1 is selected"); break;
+      case wit2.address: await sla.connect(wit2).confirm(); console.log("wit2 is selected"); break;
+      case wit3.address: await sla.connect(wit3).confirm(); console.log("wit3 is selected"); break;
+      case wit4.address: await sla.connect(wit4).confirm(); console.log("wit4 is selected"); break;
+      case wit5.address: await sla.connect(wit5).confirm(); console.log("wit5 is selected"); break;
+      case wit6.address: await sla.connect(wit6).confirm(); console.log("wit6 is selected"); break;  
       default: break;
     }
 
     switch (temp[2].args[0]) {
-      case wit1.address: await sla.connect(wit1).confirm(); break;
-      case wit2.address: await sla.connect(wit2).confirm(); break;
-      case wit3.address: await sla.connect(wit3).confirm(); break;
-      case wit4.address: await sla.connect(wit4).confirm(); break;
-      case wit5.address: await sla.connect(wit5).confirm(); break;
-      case wit6.address: await sla.connect(wit6).confirm(); break; 
+      case wit1.address: await sla.connect(wit1).confirm(); console.log("wit1 is selected"); break;
+      case wit2.address: await sla.connect(wit2).confirm(); console.log("wit2 is selected"); break;
+      case wit3.address: await sla.connect(wit3).confirm(); console.log("wit3 is selected"); break;
+      case wit4.address: await sla.connect(wit4).confirm(); console.log("wit4 is selected"); break;
+      case wit5.address: await sla.connect(wit5).confirm(); console.log("wit5 is selected"); break;
+      case wit6.address: await sla.connect(wit6).confirm(); console.log("wit6 is selected"); break;  
       default: break;
     }
 
+    await sla.connect(provider).setupSLA({ value: ethers.utils.parseEther("1") });
+
+    console.log("Provider balance before accept SLA is: ", await web3.eth.getBalance(provider.address));
+    await sla.connect(customer).acceptSLA({ value: ethers.utils.parseEther("2") });
+    console.log("Provider balance after accept SLA is: ", await web3.eth.getBalance(provider.address));
+
+    await sla.connect(wit1).reportViolation({ value: ethers.utils.parseEther("0.5") });
+    await sla.connect(wit4).reportViolation({ value: ethers.utils.parseEther("0.5") });
+    
 
     // let witnessArray  = [];
     // console.log("witness in event is: ", temp.map( function(obj){
