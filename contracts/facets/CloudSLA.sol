@@ -55,23 +55,7 @@ import "../libraries/AppStorage.sol";
     }
 
 
-    // function sortitionFromWP(uint _N)
-    //     public
-    //     returns
-    //     (bool success)
-    // {
-        
-        
-    //     require(sortition(_N));
-    //     return true;
-    // }
-
-    /**
-     * Contract Interface::
-     * Request for a sortition of _N witnesses. The _provider and _customer must not be selected.
-     * */
-
-     // باید این تابع از طرف sla فرستاده بشه 
+     
     function sortition(uint _N)
         public
         returns
@@ -278,6 +262,21 @@ import "../libraries/AppStorage.sol";
         emit SLAViolationRep(msg.sender, block.timestamp, s.ServiceEnd);
 
         console.log("violated");
+    }
+
+    function resetWitnessByWitness() 
+        public 
+
+       checkWitnessSelected(){
+            require(s.SLAState == State.Violated);
+            require(block.timestamp > s.ServiceEnd);
+            require(s.witnesses[msg.sender].selected);
+            if(s.witnesses[s.witnessCommittee[msg.sender]].violated == true && s.confirmedViolationNumber < s.witnesses[s.witnessCommittee[msg.sender]].reported){
+                s.witnesses[s.witnessCommittee[msg.sender]].violated = false;
+                s.SharedBalance += s.witnesses[s.witnessCommittee[msg.sender]].balance;    ///penalty
+                s.witnesses[s.witnessCommittee[msg.sender]].balance = 0;
+                s.witnessPool[s.witnessCommittee[msg.sender]].reputation -= 1;  ////the reputation value of this witness decreases by 1
+            }
     }
 
      ///this only restart the SLA lifecycle, not including the selecting the witness committee. This is to continuously deliver the servce. 
